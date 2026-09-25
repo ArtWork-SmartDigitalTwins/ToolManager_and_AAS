@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="urn:AtlasCopco:IJT:Tightening:Server/Types.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <NamespaceUris>
+        <Uri>urn:AtlasCopco:IJT:Tightening:Server/</Uri>
+    </NamespaceUris>
+    <Models>
+		<Model Version="1.01.0" ModelUri="urn:AtlasCopco:IJT:Tightening:Server/" PublicationDate="2025-10-06T00:00:00Z" ModelVersion="1.01.0">
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.05" PublicationDate="2025-06-30T00:00:00Z" />
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.04.0" PublicationDate="2022-11-03T00:00:00Z" />
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/AMB/" Version="1.01.1" PublicationDate="2024-02-27T00:00:00Z" />
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/IA/" Version="1.01.4" PublicationDate="2025-05-23T00:00:00Z" />
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/Machinery/" Version="1.04.0" PublicationDate="2025-07-01T00:00:00Z" />
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/Machinery/Result/" Version="1.01.0" PublicationDate="2025-07-01T00:00:00Z" />
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/IJT/Base/" Version="1.01.0" PublicationDate="2025-10-06T00:00:00Z" />
+			<RequiredModel ModelUri="http://opcfoundation.org/UA/IJT/Tightening/" Version="2.00.1" PublicationDate="2025-10-06T00:00:00Z" />
+		</Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+    </Aliases>
+    <Extensions>
+        <Extension>
+            <ua:ModelInfo Tool="UaModeler" Version="1.8.1" Hash="aosawCQDFFvQ4k7r7TDr6g=="/>
+        </Extension>
+    </Extensions>
+    <UAObject NodeId="ns=1;i=5004" BrowseName="1:urn:AtlasCopco:IJT:Tightening:Server/" SymbolicName="urn_AtlasCopco_IJT_Tightening_Server_">
+        <DisplayName>urn:AtlasCopco:IJT:Tightening:Server/</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6009</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6010</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6012</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6013</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="Boolean" NodeId="ns=1;i=6007" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=5004">
+        <DisplayName>IsNamespaceSubset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>false</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="DateTime" NodeId="ns=1;i=6008" BrowseName="NamespacePublicationDate" ParentNodeId="ns=1;i=5004">
+        <DisplayName>NamespacePublicationDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:DateTime>2025-10-06T00:00:00Z</uax:DateTime>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" NodeId="ns=1;i=6009" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5004">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:String>urn:AtlasCopco:IJT:Tightening:Server/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" NodeId="ns=1;i=6010" BrowseName="NamespaceVersion" ParentNodeId="ns=1;i=5004">
+        <DisplayName>NamespaceVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:String>1.01.0</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="IdType" ArrayDimensions="0" NodeId="ns=1;i=6011" BrowseName="StaticNodeIdTypes" ValueRank="1" ParentNodeId="ns=1;i=5004">
+        <DisplayName>StaticNodeIdTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:ListOfInt32/>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="NumericRange" ArrayDimensions="0" NodeId="ns=1;i=6012" BrowseName="StaticNumericNodeIdRange" ValueRank="1" ParentNodeId="ns=1;i=5004">
+        <DisplayName>StaticNumericNodeIdRange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:ListOfString/>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" NodeId="ns=1;i=6013" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=5004">
+        <DisplayName>StaticStringNodeIdPattern</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:String></uax:String>
+        </Value>
+    </UAVariable>
+</UANodeSet>

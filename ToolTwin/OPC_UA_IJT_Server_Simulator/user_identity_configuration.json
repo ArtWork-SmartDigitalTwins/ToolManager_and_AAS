@@ -1,0 +1,33 @@
+{
+  "userIdentityData": {
+    "enabled": true,
+    "users": [
+      {
+        "userName": "Alice",
+        "password": "password",
+        "roles": [],
+        "description": "Test user"
+      },
+      {
+        "userName": "SecurityAdmin",
+        "password": "password",
+        "roles": [
+          "SecurityAdmin"
+        ],
+        "description": "Security administrator"
+      },
+      {
+        "userName": "user1",
+        "password": "password",
+        "roles": [],
+        "description": "Generic operator-class user"
+      },
+      {
+        "userName": "user2",
+        "password": "password1",
+        "roles": [],
+        "description": "Generic engineer-class user"
+      }
+    ]
+  }
+}

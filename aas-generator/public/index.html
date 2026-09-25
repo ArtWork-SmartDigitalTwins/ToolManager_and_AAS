@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AAS Generator</title>
+<style>
+  :root {
+    --bg: #eef0ec; --surface: #ffffff; --surface-2: #f5f6f2;
+    --ink: #1b1e21; --ink-dim: #5c6167; --ink-faint: #8b9096; --border: #d6dad2;
+    --accent: #c76f1e; --accent-ink: #ffffff; --structural: #35617e; --structural-soft: #e5edf1;
+    --good: #2f8f5b; --good-soft: #e3f1e9; --warn: #a8791f; --warn-soft: #f2ecdd;
+    --bad: #b3432f; --bad-soft: #f5e6e2;
+    --stripe-a: #c76f1e; --stripe-b: #1b1e21;
+    --shadow: 0 1px 2px rgba(27,30,33,0.06), 0 6px 20px rgba(27,30,33,0.05);
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: "Cascadia Code", "Consolas", ui-monospace, "SFMono-Regular", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --surface: #1c1f24; --surface-2: #21252b; --ink: #ece9e2;
+      --ink-dim: #a2a8ad; --ink-faint: #6b7176; --border: #2d3138;
+      --accent: #e8974a; --accent-ink: #1b1300; --structural: #7badd1; --structural-soft: #23323d;
+      --good: #4bbf85; --good-soft: #1c2e25; --warn: #d8a748; --warn-soft: #35301c;
+      --bad: #e2755f; --bad-soft: #3a2420;
+      --stripe-a: #e8974a; --stripe-b: #14161a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+  .hazard { height: 6px; background: repeating-linear-gradient(135deg, var(--stripe-a) 0 14px, var(--stripe-b) 14px 28px); opacity: 0.85; }
+  .app { max-width: 1080px; margin: 0 auto; padding: 28px 24px 64px; }
+
+  header.head { margin-bottom: 20px; }
+  header.head h1 { font-family: var(--font-display); font-size: 24px; margin: 0 0 4px; letter-spacing: 0.3px; }
+  header.head p { margin: 0; color: var(--ink-dim); font-size: 13.5px; max-width: 640px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 22px 26px; margin-bottom: 18px; }
+  .panel h2 { font-family: var(--font-display); font-size: 16px; margin: 0 0 4px; }
+  .panel .hint { color: var(--ink-faint); font-size: 12.5px; margin: 0 0 16px; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-dim); margin-bottom: 6px; }
+  .field .field-hint { font-size: 11.5px; color: var(--ink-faint); margin-top: 4px; }
+  .checkbox-label { display: flex !important; align-items: center; gap: 8px; font-size: 13px !important; font-weight: 600; color: var(--ink) !important; cursor: pointer; }
+  .checkbox-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+  input[type="file"], textarea {
+    width: 100%; font-family: var(--font-body); font-size: 13px; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 9px 11px;
+  }
+  textarea { font-family: var(--font-mono); font-size: 12.5px; min-height: 70px; resize: vertical; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-body); font-weight: 600;
+    font-size: 13px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface-2); color: var(--ink); cursor: pointer;
+  }
+  .btn:hover { background: var(--structural-soft); border-color: var(--structural); color: var(--structural); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--structural); outline-offset: 2px; }
+
+  .status { font-size: 12.5px; color: var(--ink-dim); margin-top: 12px; }
+  .status.error { color: var(--bad); }
+  .doc-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 12px; font-family: var(--font-mono); color: var(--ink-dim); }
+  .doc-list .err { color: var(--bad); }
+
+  .selected-docs { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+  .selected-doc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; font-family: var(--font-mono); color: var(--ink-dim); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; }
+  .selected-doc-row .doc-remove { border: none; background: none; color: var(--ink-faint); font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px; }
+  .selected-doc-row .doc-remove:hover { color: var(--bad); }
+  .doc-badge { color: var(--structural); font-size: 11px; margin-left: 4px; }
+
+  #review { display: none; }
+  .sm-block { margin-bottom: 18px; }
+  .sm-block h3 { font-family: var(--font-display); font-size: 15px; border-bottom: 2px solid var(--structural); padding-bottom: 8px; margin: 0 0 4px; }
+
+  .leaf-row { display: grid; grid-template-columns: 220px minmax(0, 1fr) 90px; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: start; }
+  .leaf-row:last-child { border-bottom: none; }
+  @media (max-width: 700px) { .leaf-row { grid-template-columns: minmax(0, 1fr); } }
+  .leaf-label { font-size: 12.5px; font-weight: 600; color: var(--ink-dim); }
+  .leaf-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); margin-top: 2px; overflow-wrap: anywhere; }
+  .leaf-input { display: flex; flex-direction: column; gap: 4px; }
+  .leaf-input input {
+    width: 100%; font-family: var(--font-mono); font-size: 13px; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px;
+  }
+  .range-inputs { display: flex; gap: 8px; align-items: center; }
+  .range-inputs span { color: var(--ink-faint); font-family: var(--font-mono); font-size: 12px; }
+  .evidence { font-size: 11px; color: var(--ink-faint); font-style: italic; margin-top: 2px; overflow-wrap: anywhere; }
+
+  .file-upload-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .file-upload-row input[type="file"] { flex: 1; min-width: 0; font-size: 11px; color: var(--ink-dim); background: none; border: none; padding: 0; }
+  .file-upload-status { font-size: 11px; color: var(--ink-faint); }
+  .file-upload-clear { border: none; background: none; color: var(--bad); font-size: 11px; cursor: pointer; padding: 0; text-decoration: underline; }
+
+  .pill { display: inline-flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; border-radius: 999px; padding: 3px 8px; white-space: nowrap; height: fit-content; }
+  .pill.high { background: var(--good-soft); color: var(--good); }
+  .pill.medium { background: var(--warn-soft); color: var(--warn); }
+  .pill.low { background: var(--surface-2); color: var(--ink-faint); border: 1px solid var(--border); }
+  .pill.none { background: var(--surface-2); color: var(--ink-faint); border: 1px solid var(--border); }
+
+  .progress-wrap { display: none; margin-top: 12px; }
+  .progress-meta { display: flex; justify-content: space-between; gap: 12px; align-items: center; font-size: 12px; color: var(--ink-dim); margin-bottom: 6px; }
+  .progress-track { width: 100%; height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; position: relative; }
+  /* Lives on the track (always full-width) rather than the fill, which is invisible at 0% -
+     a submodel's whole extraction is one LLM call, so the fill can sit still for a long time
+     between real checkpoints; this says "still working" without faking the percentage. */
+  .progress-track.active::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background-image: repeating-linear-gradient(135deg, var(--structural-soft) 0 10px, transparent 10px 20px);
+    background-size: 28px 28px;
+    animation: progress-shimmer 1.1s linear infinite;
+    opacity: 0.7;
+  }
+  .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent), #d68942); border-radius: inherit; transition: width 0.6s ease; position: relative; z-index: 1; }
+  @keyframes progress-shimmer { from { background-position: 0 0; } to { background-position: 28px 0; } }
+
+  .generate-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; bottom: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 14px 20px; }
+  .generate-bar .count { font-size: 12.5px; color: var(--ink-dim); }
+
+  footer { text-align: center; font-size: 11.5px; color: var(--ink-faint); margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="hazard"></div>
+<div class="app">
+  <header class="head">
+    <h1>AAS Generator</h1>
+    <p>Upload an AAS template plus the asset's documents (PDF, Word, Excel, or web links). The system reads the documents and proposes a value for each template element - review and edit them, then generate the filled-in .aasx.</p>
+  </header>
+
+  <section class="panel" id="inputPanel">
+    <h2>1. Inputs</h2>
+    <p class="hint">The template defines the structure (which elements need values); the documents are where those values come from.</p>
+
+    <div class="field">
+      <label for="templateInput">AAS template (.aasx)</label>
+      <input type="file" id="templateInput" accept=".aasx">
+    </div>
+    <div class="field">
+      <label for="assetNameInput">Asset name</label>
+      <input type="text" id="assetNameInput">
+      <div class="field-hint">Tells the extractor exactly which product to pull values for - important if a document covers a product family or several variants, and used to focus any web search.</div>
+    </div>
+    <div class="field">
+      <label for="documentsInput">Asset documents (PDF, DOCX, XLSX, TXT/CSV, or an image for the thumbnail)</label>
+      <input type="file" id="documentsInput" multiple accept=".pdf,.docx,.xlsx,.xlsm,.txt,.csv,.png,.jpg,.jpeg,image/png,image/jpeg">
+      <div class="field-hint">Pick files one at a time or several at once - click "Choose Files" again to add more, earlier picks are kept. A PNG/JPG here isn't read for text - the first one is used as the AAS thumbnail once extraction finishes.</div>
+      <div class="selected-docs" id="selectedDocsList"></div>
+    </div>
+    <div class="field">
+      <label for="urlsInput">Web links (one per line)</label>
+      <textarea id="urlsInput" placeholder="https://example.com/product-page"></textarea>
+    </div>
+    <div class="field">
+      <label class="checkbox-label">
+        <input type="checkbox" id="webSearchToggle">
+        Search the web for values the documents don't cover
+      </label>
+      <div class="field-hint">Uses Claude's web search/fetch tools when needed - costs a bit more per run than documents alone.</div>
+    </div>
+    <div class="field">
+      <button class="btn primary" id="extractBtn" type="button">Extract Values</button>
+      <div class="status" id="extractStatus"></div>
+      <div class="progress-wrap" id="progressWrap" aria-live="polite">
+        <div class="progress-meta">
+          <span id="progressText">0/0 fields</span>
+          <strong id="progressPercent">0%</strong>
+        </div>
+        <div class="progress-track" id="progressTrack">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+      <div class="doc-list" id="docList"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="review">
+    <h2 id="reviewTitle">2. Review</h2>
+    <p class="hint">Edit any value below before generating. Fields left blank are written as null (text) or 0 (numeric) in the output.</p>
+    <div id="reviewBody"></div>
+  </section>
+
+  <div class="generate-bar" id="generateBar" style="display:none;">
+    <span class="count" id="generateCount"></span>
+    <button class="btn primary" id="generateBtn" type="button">Download .aasx</button>
+  </div>
+
+  <footer>Runs locally &middot; documents and API calls stay on this machine and the LLM you configure &middot; nothing is stored beyond your session</footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var state = { sessionId: null, leaves: [] };
+  var selectedDocs = []; // accumulated across multiple "Choose Files" picks
+  var reviewPopulated = false; // true once Review has real content worth warning before discarding
+  // An image picked in the Asset documents box isn't sent for text extraction - it's held
+  // here and auto-applied to the thumbnail field once the Review section renders.
+  var pendingThumbnailImage = null;
+
+  var extractBtn = document.getElementById('extractBtn');
+  var extractStatus = document.getElementById('extractStatus');
+  var progressWrap = document.getElementById('progressWrap');
+  var progressText = document.getElementById('progressText');
+  var progressPercent = document.getElementById('progressPercent');
+  var progressTrack = document.getElementById('progressTrack');
+  var progressFill = document.getElementById('progressFill');
+  var docList = document.getElementById('docList');
+  var documentsInput = document.getElementById('documentsInput');
+  var selectedDocsList = document.getElementById('selectedDocsList');
+  var review = document.getElementById('review');
+  var reviewTitle = document.getElementById('reviewTitle');
+  var reviewBody = document.getElementById('reviewBody');
+  var generateBar = document.getElementById('generateBar');
+  var generateBtn = document.getElementById('generateBtn');
+  var generateCount = document.getElementById('generateCount');
+  var extractPollTimer = null;
+
+  function el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function elText(tag, cls, text) { var e = el(tag, cls); e.textContent = text; return e; }
+
+  function fileKey(f) { return f.name + '|' + f.size + '|' + f.lastModified; }
+  function isImageFile(f) {
+    if (f.type && /^image\/(png|jpe?g)$/i.test(f.type)) return true;
+    return /\.(png|jpe?g)$/i.test(f.name || '');
+  }
+
+  function syncDocumentsInput() {
+    var dt = new DataTransfer();
+    selectedDocs.forEach(function (f) { dt.items.add(f); });
+    documentsInput.files = dt.files;
+  }
+
+  function renderSelectedDocs() {
+    selectedDocsList.innerHTML = '';
+    var imageSeen = false;
+    selectedDocs.forEach(function (f, idx) {
+      var row = el('div', 'selected-doc-row');
+      var label = el('span');
+      label.appendChild(document.createTextNode(f.name));
+      if (isImageFile(f)) {
+        var isFirstImage = !imageSeen;
+        imageSeen = true;
+        label.appendChild(elText('span', 'doc-badge', isFirstImage ? ' → used as thumbnail' : ' (extra image, not used)'));
+      }
+      row.appendChild(label);
+      var removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'doc-remove';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'Remove';
+      removeBtn.addEventListener('click', function () {
+        selectedDocs.splice(idx, 1);
+        syncDocumentsInput();
+        renderSelectedDocs();
+      });
+      row.appendChild(removeBtn);
+      selectedDocsList.appendChild(row);
+    });
+  }
+
+  documentsInput.addEventListener('change', function () {
+    var picked = Array.prototype.slice.call(documentsInput.files || []);
+    var existingKeys = {};
+    selectedDocs.forEach(function (f) { existingKeys[fileKey(f)] = true; });
+    picked.forEach(function (f) {
+      var k = fileKey(f);
+      if (!existingKeys[k]) { selectedDocs.push(f); existingKeys[k] = true; }
+    });
+    syncDocumentsInput();
+    renderSelectedDocs();
+  });
+
+  function formatMlpForInput(arr) {
+    return (arr || []).map(function (x) { return x.language + ':' + x.text; }).join('; ');
+  }
+  function parseMlpInput(str) {
+    return String(str || '').split(';').map(function (part) {
+      var idx = part.indexOf(':');
+      if (idx === -1) return { language: 'en', text: part.trim() };
+      return { language: part.slice(0, idx).trim(), text: part.slice(idx + 1).trim() };
+    }).filter(function (x) { return x.text; });
+  }
+
+  function updateExtractionProgress(job) {
+    if (!job) { progressWrap.style.display = 'none'; return; }
+
+    var total = Number(job.total || 0);
+    var processed = Number(job.processed || 0);
+    var current = job.current || 'Extracting values';
+    var pct = typeof job.percent === 'number' ? job.percent : (total ? Math.round((processed / total) * 100) : 0);
+    pct = Math.max(0, Math.min(100, pct));
+
+    progressText.textContent = current + ' • ' + processed + '/' + total + ' fields';
+    progressPercent.textContent = pct + '%';
+    progressFill.style.width = pct + '%';
+    progressWrap.style.display = 'block';
+    // Each submodel's fields come back from one LLM call, so the fill can sit still for a
+    // long stretch between real checkpoints - this shimmer says "still working" without
+    // faking the percentage itself.
+    progressTrack.classList.toggle('active', job.status === 'in_progress' || job.status === 'pending');
+  }
+
+  function hideExtractionProgress() {
+    progressWrap.style.display = 'none';
+    progressTrack.classList.remove('active');
+  }
+
+  function startExtractionProgressPolling(jobId) {
+    if (extractPollTimer) clearInterval(extractPollTimer);
+    extractPollTimer = setInterval(async function () {
+      try {
+        var resp = await fetch('/api/extract-progress/' + encodeURIComponent(jobId));
+        if (!resp.ok) return;
+        var job = await resp.json();
+        updateExtractionProgress(job);
+        if (job && (job.status === 'done' || job.status === 'failed')) {
+          clearInterval(extractPollTimer);
+          extractPollTimer = null;
+        }
+      } catch (_) {
+        // Ignore transient polling errors and keep the UI responsive while extraction runs.
+      }
+    }, 500);
+  }
+
+  extractBtn.addEventListener('click', async function () {
+    var templateFile = document.getElementById('templateInput').files[0];
+    if (!templateFile) { extractStatus.textContent = 'Choose a template .aasx file first.'; extractStatus.className = 'status error'; return; }
+
+    // Re-running extraction rebuilds the whole Review section from scratch, silently
+    // discarding any edits made there since - including an image uploaded directly onto a
+    // field (e.g. the thumbnail) via its own "or upload an image" button, which isn't
+    // re-derived from anything and would otherwise just vanish.
+    if (reviewPopulated && !confirm('Re-running extraction will discard your current review edits (including any uploaded images) and start over. Continue?')) {
+      return;
+    }
+
+    // Images picked here aren't documents the server can read text from - they're set aside
+    // and applied to the thumbnail field once Review renders (see renderReview).
+    var docs = selectedDocs.filter(function (f) { return !isImageFile(f); });
+    var imageFiles = selectedDocs.filter(isImageFile);
+    pendingThumbnailImage = imageFiles.length ? imageFiles[0] : null;
+    var urls = document.getElementById('urlsInput').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+    var assetName = document.getElementById('assetNameInput').value.trim();
+    var useWebSearch = document.getElementById('webSearchToggle').checked;
+
+    var fd = new FormData();
+    var jobId = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : 'extract-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    fd.append('jobId', jobId);
+    fd.append('template', templateFile);
+    for (var i = 0; i < docs.length; i++) fd.append('documents', docs[i]);
+    fd.append('urls', JSON.stringify(urls));
+    fd.append('assetName', assetName);
+    fd.append('useWebSearch', useWebSearch ? 'true' : 'false');
+
+    extractBtn.disabled = true;
+    extractStatus.textContent = 'Reading documents and extracting values - this can take a minute...';
+    extractStatus.className = 'status';
+    updateExtractionProgress({ total: 0, processed: 0, current: 'Preparing the extraction', percent: 0, status: 'pending' });
+    startExtractionProgressPolling(jobId);
+    docList.innerHTML = '';
+    review.style.display = 'none';
+    generateBar.style.display = 'none';
+
+    try {
+      var resp = await fetch('/api/extract', { method: 'POST', body: fd });
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Extraction failed.');
+
+      if (extractPollTimer) {
+        clearInterval(extractPollTimer);
+        extractPollTimer = null;
+      }
+      updateExtractionProgress({ total: data.leaves ? data.leaves.length : 0, processed: data.leaves ? data.leaves.length : 0, current: 'Extraction complete', percent: 100 });
+      setTimeout(hideExtractionProgress, 500);
+
+      state.sessionId = data.sessionId;
+      state.leaves = data.leaves;
+
+      var searchNote = data.webSearchesUsed ? ' (' + data.webSearchesUsed + ' web search' + (data.webSearchesUsed === 1 ? '' : 'es') + ' used)' : '';
+      var truncatedNote = (data.truncatedSubmodels && data.truncatedSubmodels.length)
+        ? ' Warning: ran out of response budget while researching ' + data.truncatedSubmodels.join(', ') + ' - those fields were not actually checked, re-run extraction to retry.'
+        : '';
+      extractStatus.textContent = data.extractError
+        ? 'Template parsed, but extraction failed: ' + data.extractError
+        : 'Done. ' + data.leaves.filter(function (l) { return l.extracted.found; }).length + ' of ' + data.leaves.length + ' elements filled.' + searchNote + truncatedNote;
+      extractStatus.className = (data.extractError || truncatedNote) ? 'status error' : 'status';
+
+      data.documents.forEach(function (d) {
+        var line = elText('div', d.error ? 'err' : '', d.name + (d.error ? ' - ' + d.error : ' (' + d.chars + ' chars)'));
+        docList.appendChild(line);
+      });
+
+      renderReview(data.shellName, data.leaves);
+    } catch (err) {
+      if (extractPollTimer) {
+        clearInterval(extractPollTimer);
+        extractPollTimer = null;
+      }
+      hideExtractionProgress();
+      extractStatus.textContent = err.message;
+      extractStatus.className = 'status error';
+    } finally {
+      extractBtn.disabled = false;
+    }
+  });
+
+  function renderReview(shellName, leaves) {
+    reviewTitle.textContent = '2. Review - ' + shellName;
+    reviewBody.innerHTML = '';
+
+    var bySubmodel = new Map();
+    leaves.forEach(function (l) {
+      if (!bySubmodel.has(l.submodelIdShort)) bySubmodel.set(l.submodelIdShort, []);
+      bySubmodel.get(l.submodelIdShort).push(l);
+    });
+
+    bySubmodel.forEach(function (rows, smName) {
+      var block = el('div', 'sm-block');
+      block.appendChild(elText('h3', null, smName));
+      rows.forEach(function (leaf) {
+        var preset = (leaf.field === 'thumbnail' && pendingThumbnailImage) ? pendingThumbnailImage : null;
+        block.appendChild(renderLeafRow(leaf, preset));
+      });
+      reviewBody.appendChild(block);
+    });
+    pendingThumbnailImage = null; // one-shot - only auto-applied for the extraction that just ran
+
+    review.style.display = '';
+    generateBar.style.display = leaves.length ? 'flex' : 'none';
+    generateCount.textContent = leaves.length + ' fields';
+    reviewPopulated = leaves.length > 0;
+    hideExtractionProgress();
+  }
+
+  function renderLeafRow(leaf, presetFile) {
+    var row = el('div', 'leaf-row');
+
+    var labelBox = el('div');
+    labelBox.appendChild(elText('div', 'leaf-label', leaf.displayName || leaf.idShort));
+    if (leaf.semanticId) labelBox.appendChild(elText('div', 'leaf-meta', leaf.semanticId));
+    row.appendChild(labelBox);
+
+    var inputBox = el('div', 'leaf-input');
+    leaf._getValue = buildInputs(leaf, inputBox, presetFile);
+    if (leaf.extracted.evidence) inputBox.appendChild(elText('div', 'evidence', '“' + leaf.extracted.evidence + '”'));
+    row.appendChild(inputBox);
+
+    var confidence = leaf.extracted.found ? (leaf.extracted.confidence || 'low') : 'none';
+    row.appendChild(elText('span', 'pill ' + confidence, leaf.extracted.found ? confidence : 'not found'));
+
+    return row;
+  }
+
+  var NUMERIC_VALUE_TYPE_RE = /^xs:(integer|int|long|short|byte|double|float|decimal|unsignedbyte|unsignedint|unsignedlong|unsignedshort|negativeinteger|nonnegativeinteger|nonpositiveinteger|positiveinteger)$/i;
+  function isNumericValueType(vt) { return NUMERIC_VALUE_TYPE_RE.test(vt || ''); }
+  function isImageContentType(ct) { return /^image\//i.test(ct || ''); }
+  var MAX_IMAGE_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+  function generateUuid() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  var ASSET_KIND_OPTIONS = ['Instance', 'Type', 'NotApplicable'];
+
+  function buildInputs(leaf, container, presetFile) {
+    // id/idShort/assetKind are structurally required on a valid AAS - unlike ordinary
+    // submodel data they must never end up blank, so they get sensible non-empty defaults
+    // instead of the usual "blank = null/0" behavior.
+    if (leaf.field === 'assetKind') {
+      var select = document.createElement('select');
+      ASSET_KIND_OPTIONS.forEach(function (opt) {
+        var o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        select.appendChild(o);
+      });
+      var kindValue = leaf.extracted.found ? leaf.extracted.value : leaf.currentValue;
+      select.value = ASSET_KIND_OPTIONS.indexOf(kindValue) !== -1 ? kindValue : 'Instance';
+      container.appendChild(select);
+      return function () { return select.value; };
+    }
+
+    if (leaf.field === 'id' || leaf.field === 'idShort') {
+      var idInput = document.createElement('input');
+      idInput.type = 'text';
+      if (leaf.extracted.found) idInput.value = leaf.extracted.value;
+      else if (leaf.field === 'id') idInput.value = 'urn:uuid:' + generateUuid();
+      else idInput.value = leaf.currentValue || '';
+      container.appendChild(idInput);
+      return function () { return idInput.value; };
+    }
+
+    // File elements (images, logos, markings...): unlike ordinary data fields, keep the
+    // template's existing file reference by default when nothing new was found - it may
+    // already be a real, reusable embedded image, and nulling it out would silently strip
+    // a working file. A pasted/found http(s) URL is downloaded and embedded automatically
+    // when you generate; anything else is kept as a plain package-internal reference.
+    if (leaf.modelType === 'File') {
+      var fileInput = document.createElement('input');
+      fileInput.type = 'text';
+      fileInput.placeholder = isImageContentType(leaf.contentType)
+        ? 'https://... image URL - downloaded and embedded automatically'
+        : 'package path or URL (not an image contentType, won\'t be auto-searched)';
+      fileInput.value = leaf.extracted.found ? leaf.extracted.value : (leaf.currentValue || '');
+      container.appendChild(fileInput);
+
+      if (!isImageContentType(leaf.contentType)) {
+        return function () { return fileInput.value; };
+      }
+
+      // Image fields (thumbnail, logo, markings...) can also be filled by uploading a local
+      // file directly, not just pasting a URL for the server to fetch - read it client-side as
+      // a data: URL and let /api/generate embed it the same way it embeds a downloaded one.
+      var pendingDataUrl = null;
+      var uploadRow = el('div', 'file-upload-row');
+      var uploadInput = document.createElement('input');
+      uploadInput.type = 'file';
+      uploadInput.accept = 'image/png,image/jpeg,.png,.jpg,.jpeg';
+      var uploadStatus = elText('span', 'file-upload-status', 'or upload an image (PNG/JPG)');
+      var clearBtn = document.createElement('button');
+      clearBtn.type = 'button';
+      clearBtn.className = 'file-upload-clear';
+      clearBtn.textContent = 'Clear';
+      clearBtn.style.display = 'none';
+
+      // Shared by the manual file-picker below and by a preset (e.g. an image dropped in the
+      // Asset documents box, auto-applied here once Review renders) - either way the result is
+      // the same: read the file client-side, hold it as a data: URL for /api/generate to embed.
+      function applyUploadedFile(f) {
+        if (!f) return false;
+        if (f.size > MAX_IMAGE_UPLOAD_BYTES) {
+          alert('That image is ' + (f.size / (1024 * 1024)).toFixed(1) + ' MB - please choose one under ' + (MAX_IMAGE_UPLOAD_BYTES / (1024 * 1024)) + ' MB.');
+          return false;
+        }
+        var reader = new FileReader();
+        reader.onload = function () {
+          pendingDataUrl = reader.result;
+          uploadStatus.textContent = 'Will embed: ' + f.name + ' (' + Math.round(f.size / 1024) + ' KB)';
+          clearBtn.style.display = '';
+          fileInput.disabled = true;
+        };
+        reader.onerror = function () {
+          alert('Could not read "' + f.name + '".');
+        };
+        reader.readAsDataURL(f);
+        return true;
+      }
+
+      uploadInput.addEventListener('change', function () {
+        var f = uploadInput.files && uploadInput.files[0];
+        if (!f) return;
+        if (!applyUploadedFile(f)) uploadInput.value = '';
+      });
+
+      clearBtn.addEventListener('click', function () {
+        pendingDataUrl = null;
+        uploadInput.value = '';
+        uploadStatus.textContent = 'or upload an image (PNG/JPG)';
+        clearBtn.style.display = 'none';
+        fileInput.disabled = false;
+      });
+
+      uploadRow.appendChild(uploadInput);
+      uploadRow.appendChild(uploadStatus);
+      uploadRow.appendChild(clearBtn);
+      container.appendChild(uploadRow);
+
+      if (presetFile) applyUploadedFile(presetFile);
+
+      return function () { return pendingDataUrl || fileInput.value; };
+    }
+
+    var emptyPlaceholder = isNumericValueType(leaf.valueType) ? '0 (not found)' : 'null (not found)';
+
+    if (leaf.modelType === 'Range') {
+      var wrap = el('div', 'range-inputs');
+      var min = document.createElement('input');
+      min.type = 'text'; min.placeholder = emptyPlaceholder;
+      min.value = (leaf.extracted.found && leaf.extracted.value && leaf.extracted.value.min != null) ? leaf.extracted.value.min : '';
+      var max = document.createElement('input');
+      max.type = 'text'; max.placeholder = emptyPlaceholder;
+      max.value = (leaf.extracted.found && leaf.extracted.value && leaf.extracted.value.max != null) ? leaf.extracted.value.max : '';
+      wrap.appendChild(min);
+      wrap.appendChild(elText('span', null, '-'));
+      wrap.appendChild(max);
+      container.appendChild(wrap);
+      return function () { return { min: min.value, max: max.value }; };
+    }
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    if (leaf.modelType === 'MultiLanguageProperty') {
+      input.value = leaf.extracted.found ? formatMlpForInput(leaf.extracted.value) : '';
+      input.placeholder = 'en:...; de:... (blank = null (not found))';
+      container.appendChild(input);
+      return function () { return parseMlpInput(input.value); };
+    }
+
+    input.value = leaf.extracted.found ? (leaf.extracted.value || '') : '';
+    input.placeholder = emptyPlaceholder;
+    container.appendChild(input);
+    return function () { return input.value; };
+  }
+
+  generateBtn.addEventListener('click', async function () {
+    if (!state.sessionId) return;
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generating...';
+    try {
+      var values = state.leaves.map(function (leaf) { return { key: leaf.key, value: leaf._getValue() }; });
+      var resp = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: state.sessionId, values: values })
+      });
+      if (!resp.ok) {
+        var err = await resp.json();
+        throw new Error(err.error || 'Generation failed.');
+      }
+      var blob = await resp.blob();
+      var disposition = resp.headers.get('Content-Disposition') || '';
+      var match = /filename="([^"]+)"/.exec(disposition);
+      var filename = match ? match[1] : 'aas-instance.aasx';
+      var imageWarnings = resp.headers.get('X-Image-Warnings');
+
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+
+      if (imageWarnings) {
+        alert('Generated, but some images could not be downloaded and were left empty:\n\n' + decodeURIComponent(imageWarnings).split(' | ').join('\n'));
+      }
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'Download .aasx';
+    }
+  });
+})();
+</script>
+</body>
+</html>

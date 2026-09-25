@@ -1,0 +1,22 @@
+{
+  "name": "aas-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generates an AAS instance (.aasx) from a template plus asset documents (PDF, Excel, Word, web links) using LLM-assisted extraction.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mammoth": "^1.8.0",
+    "exceljs": "^4.4.0",
+    "fast-xml-parser": "^5.7.0",
+    "multer": "^2.0.1",
+    "pdf-parse": "^1.1.1"
+  }
+}
+

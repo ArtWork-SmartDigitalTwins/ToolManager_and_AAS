@@ -1,0 +1,7 @@
+services:
+  aas-generator:
+    build: .
+    ports:
+      - "4100:4100"
+    env_file:
+      - .env
